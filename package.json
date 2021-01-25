@@ -1,0 +1,28 @@
+{
+  "name": "x509-parser",
+  "version": "1.0.0",
+  "description": "Convert x509 certificate to json",
+  "main": "src/certificate.js",
+  "scripts": {
+    "test": "jest",
+    "test-watch": "jest --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/philwantsfish/cert2json.git"
+  },
+  "keywords": [
+    "x509"
+  ],
+  "author": "Philip OKeefe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/philwantsfish/cert2json/issues"
+  },
+  "homepage": "https://github.com/philwantsfish/cert2json#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "jest": "^26.6.3"
+  },
+  "bin": "src/cli.js"
+}
