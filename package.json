@@ -1,5 +1,5 @@
 {
-  "name": "x509-parser",
+  "name": "cert2json",
   "version": "1.0.0",
   "description": "Convert x509 certificate to json",
   "main": "src/certificate.js",

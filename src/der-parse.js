@@ -235,6 +235,10 @@ function parseUtcTime(bytes) {
     return d
 }
 
+function parseGeneralizedTime(bytes) {
+    throw new Error("Token type GeneralizedTime not supported")
+}
+
 function parseUtf8String(bytes) {
     return bytes.toString()
 }
@@ -259,6 +263,7 @@ const tagToParseFunctionMap = {
     BITSTRING: parseBitString,
     OCTETSTRING: parseOctetString,
     UTCTIME: parseUtcTime,
+    GENERALIZEDTCTIME: parseGeneralizedTime,
     UTF8STRING: parseUtf8String,
     SEQUENCE: parseSequence,
     SET: parseSet,
@@ -309,5 +314,6 @@ exports.parseBoolean = parseBoolean
 exports.parseBitString = parseBitString
 exports.parseOctetString = parseOctetString
 exports.parseUtcTime = parseUtcTime
+exports.parseGeneralizedTime = parseGeneralizedTime
 exports.parseUtf8String = parseUtf8String
 exports.parse = parse
