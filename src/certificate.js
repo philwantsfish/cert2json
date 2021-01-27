@@ -192,8 +192,6 @@ function parseSignatureAlgorithmTokens(tokens) {
     }
 }
 
-
-
 function parse(buffer) {
     const tlvs = tokenize.tokenize(buffer, 0)
     // expect(tlvs.length).toBe(1)
