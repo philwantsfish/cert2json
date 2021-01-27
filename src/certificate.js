@@ -87,7 +87,9 @@ function parseSignatureAlgorithm(token) {
 }
 
 function parseIssuer(token) {
-    const issuerParts = token.parsedResult.map(token => {
+    const issuerObj = {}
+
+    const parts = token.parsedResult.map(token => {
         const fields = token.parsedResult[0].parsedResult
         const oid =  fields[0].parsedResult
         return {
@@ -97,12 +99,14 @@ function parseIssuer(token) {
         }
     })
 
-    const issuer = issuerParts.map(part => `${part.key}=${part.value}`).join(', ')
+    const issuer = parts.map(part => `${part.key}=${part.value}`).join(', ')
 
-    return {
-        full: issuer,
-        parts: issuerParts
-    }
+    parts.forEach(part => {
+        issuerObj[part.key] = part.value
+    })
+    issuerObj.full = issuer
+
+    return issuerObj
 }
 
 function parseValidity(token) {
@@ -116,6 +120,8 @@ function parseValidity(token) {
 }
 
 function parseSubject(token) {
+    const subjectObj = {}
+
     const parts = token.parsedResult.map(token => {
         const fields = token.parsedResult[0].parsedResult
         const oid = fields[0].parsedResult
@@ -130,10 +136,12 @@ function parseSubject(token) {
 
     const full = parts.map(p => `${p.key}=${p.value}`).join(', ')
 
-    return {
-        full: full,
-        parts: parts
-    }
+    parts.forEach(part => {
+        subjectObj[part.key] = part.value
+    })
+    subjectObj.full = full
+
+    return subjectObj
 }
 
 function parseSubjectPublicKeyInfo(token) {
