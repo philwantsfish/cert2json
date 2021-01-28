@@ -305,6 +305,16 @@ function parse(tlv) {
 }
 
 function parseExtension_AuthorityKeyIdentifier(extensionObj, bytes) {
+    function bytesToHex(bytes, offset) {
+        const [lenOfLen, len] = tokenize.get_len(bytes, offset + 1)
+        const start = offset + 1 + lenOfLen
+        const keyIdBytes = bytes.slice(start, start + len)
+
+        var hex = []
+        keyIdBytes.forEach(b => hex.push(("0" + b.toString(16)).slice(-2)))
+        hex = hex.join(":")
+        return hex
+    }
     /**
      * This token has the following format:
      * 
@@ -314,8 +324,6 @@ function parseExtension_AuthorityKeyIdentifier(extensionObj, bytes) {
      *  authorityCertSerialNumber [2] CertificateSerialNumber OPTIONAL  }
      * 
      */
-
-     
     if (bytes.readInt8(0) !== 0x30) {
         throw new Error("Invalid AuthorityKeyIdentifier. Expected a SEQUENCE token.")
     }
@@ -327,24 +335,16 @@ function parseExtension_AuthorityKeyIdentifier(extensionObj, bytes) {
     var result = {}
     while (offset < remainingBytes.length) {
         const contextualTag = remainingBytes.readUInt8(0)
+        const [lenOfLen, len] = tokenize.get_len(remainingBytes, offset + 1)
         if (contextualTag === 0x80) {
-            const [lenOfLen, len] = tokenize.get_len(remainingBytes, offset + 1)
-            const start = offset + 1 + lenOfLen
-            const keyIdBytes = remainingBytes.slice(start, start + len)
-
-            var hex = []
-            keyIdBytes.forEach(b => hex.push(("0" + b.toString(16)).slice(-2)))
-            hex = hex.join(":")
-
-            extensionObj.KeyIdentifier = hex
-
+            extensionObj.KeyIdentifier = bytesToHex(remainingBytes, offset + 1)
             offset = offset + 1 + lenOfLen + len
         } else if (contextualTag === 0x81) {
-            // const [lenOfLen, len] = tokenize.get_len(bytes, 1)
-            throw new Error("Error: AuthoryKeyIdentifier Extension: authorityCertIssuer not supported")
+            extensionObj.GeneralNames = bytesToHex(remainingBytes, offset + 1)
+            offset = offset + 1 + lenOfLen + len
         } else if (contextualTag === 0x82) {
-            // const [lenOfLen, len] = tokenize.get_len(bytes, 1)
-            throw new Error("Error: AuthoryKeyIdentifier Extension: authorityCertSerialNumber not supported")
+            extensionObj.CertificateSerialNumber = bytesToHex(remainingBytes, offset + 1)
+            offset = offset + 1 + lenOfLen + len
         } else {
             throw new Error(`Error: AuthorityKeyIdentifer had unexpected contextual tag ${contextualTag} ${0x80}`)
         }

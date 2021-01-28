@@ -211,7 +211,7 @@ function parseExtensions(token) {
 
         // console.log(extensionName)
         var extensionObj = {
-            extID: extensionName,
+            extnID: extensionName,
             critical: critical,
         }
         switch(oid) {
