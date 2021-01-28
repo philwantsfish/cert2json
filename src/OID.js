@@ -31,7 +31,7 @@ const OID = {
     "2.5.29.33": "X509v3 Policy Mappings",
     "2.5.29.35": "X509v3 Authority Key Identifier",
     "2.5.29.37": "X509v3 Extended Key Usage",
-    "1.3.6.1.5.5.7.1.1": "???", // 30 5a 30 2b
+    "1.3.6.1.5.5.7.1.1": "Authority Information Access",
     "1.3.6.1.4.1.11129.2.4.2": "???" // 04 81 f0 00 f1
 }
 

@@ -304,6 +304,54 @@ function parse(tlv) {
     }
 }
 
+function parseExtension_AuthorityKeyIdentifier(extensionObj, bytes) {
+    /**
+     * This token has the following format:
+     * 
+     *  AuthorityKeyIdentifier ::= SEQUENCE {
+     *  keyIdentifier             [0] KeyIdentifier           OPTIONAL,
+     *  authorityCertIssuer       [1] GeneralNames            OPTIONAL,
+     *  authorityCertSerialNumber [2] CertificateSerialNumber OPTIONAL  }
+     * 
+     */
+
+     
+    if (bytes.readInt8(0) !== 0x30) {
+        throw new Error("Invalid AuthorityKeyIdentifier. Expected a SEQUENCE token.")
+    }
+
+    const [lenOfLen, len] = tokenize.get_len(bytes, 1)
+    const remainingBytes = bytes.slice(1 + lenOfLen)
+
+    var offset = 0
+    var result = {}
+    while (offset < remainingBytes.length) {
+        const contextualTag = remainingBytes.readUInt8(0)
+        if (contextualTag === 0x80) {
+            const [lenOfLen, len] = tokenize.get_len(remainingBytes, offset + 1)
+            const start = offset + 1 + lenOfLen
+            const keyIdBytes = remainingBytes.slice(start, start + len)
+
+            var hex = []
+            keyIdBytes.forEach(b => hex.push(("0" + b.toString(16)).slice(-2)))
+            hex = hex.join(":")
+
+            extensionObj.KeyIdentifier = hex
+
+            offset = offset + 1 + lenOfLen + len
+        } else if (contextualTag === 0x81) {
+            // const [lenOfLen, len] = tokenize.get_len(bytes, 1)
+            throw new Error("Error: AuthoryKeyIdentifier Extension: authorityCertIssuer not supported")
+        } else if (contextualTag === 0x82) {
+            // const [lenOfLen, len] = tokenize.get_len(bytes, 1)
+            throw new Error("Error: AuthoryKeyIdentifier Extension: authorityCertSerialNumber not supported")
+        } else {
+            throw new Error(`Error: AuthorityKeyIdentifer had unexpected contextual tag ${contextualTag} ${0x80}`)
+        }
+    }
+    return extensionObj
+}
+
 
 exports.shiftToLeadingBits = shiftToLeadingBits
 exports.getLeadingAndZeroBits = getLeadingAndZeroBits
@@ -317,3 +365,5 @@ exports.parseUtcTime = parseUtcTime
 exports.parseGeneralizedTime = parseGeneralizedTime
 exports.parseUtf8String = parseUtf8String
 exports.parse = parse
+
+exports.parseExtension_AuthorityKeyIdentifier = parseExtension_AuthorityKeyIdentifier

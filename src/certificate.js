@@ -1,4 +1,5 @@
 const tokenize = require('./der-tokenize')
+const parser = require('./der-parse')
 const OID = require('./OID')
 
 // NOTES
@@ -40,19 +41,22 @@ function parseTbsToken(tokenOrder, token) {
         case TbsTokenOrder.SubjectPublicKeyInfo:
             return parseSubjectPublicKeyInfo(token)
         case TbsTokenOrder.OptionalIssuerUniqueId:
+            return parseIssuerUniqueId(token)
         case TbsTokenOrder.OptionalSubjectUniqueId:
+            return parseSubjectUniqueId(token)
         case TbsTokenOrder.Extensions:
-            if (token.tagStr === "cont [ 1 ]") {
-                // IssuerUniqueId is identified by context-sensitive tag [1]
-                parseIssuerUniqueId(token)
-            } else if (token.tagStr === "cont [ 2 ]") {
-                // SubjectUniqueId is identified by context-sensitive tag [2]
-                parseSubjectUniqueId(token)
-            } else if (token.tagStr === "cont [ 3 ]") {
-                // Extensions is identified by context-sensitive tag [3]
-                return parseExtensions(token)
-            }
-            throw new Error(`Not supported yet ${tokenOrder}`)
+            return parseExtensions(token)
+            // if (token.tagStr === "cont [ 1 ]") {
+            //     // IssuerUniqueId is identified by context-sensitive tag [1]
+            //     parseIssuerUniqueId(token)
+            // } else if (token.tagStr === "cont [ 2 ]") {
+            //     // SubjectUniqueId is identified by context-sensitive tag [2]
+            //     parseSubjectUniqueId(token)
+            // } else if (token.tagStr === "cont [ 3 ]") {
+            //     // Extensions is identified by context-sensitive tag [3]
+            //     return parseExtensions(token)
+            // }
+            // throw new Error(`Not supported yet ${tokenOrder}`)
         default:
             const msg = `Error in parseTbsToken. There shouldn't be this many tokens: ${tokenOrder}`
             // console.log(msg)
@@ -160,6 +164,7 @@ function parseSubjectPublicKeyInfo(token) {
     }
     return subjectPublicKeyInfo
 }
+
 function parseIssuerUniqueId(token) {
     throw new Error("Issuer unique id not supported.")
 }
@@ -167,8 +172,115 @@ function parseSubjectUniqueId(token) {
     throw new Error("Subject unique id not supported.")
 }
 
+
+function parseExtension_AuthorityKeyIdentifier(extensionObj, token) {
+    return parser.parseExtension_AuthorityKeyIdentifier(extensionObj, token.value)
+}
+
 function parseExtensions(token) {
-    return ["Extensions not supported."]
+    const extensionTokens = token.parsedResult[0].parsedResult
+    console.log(`[+] ${extensionTokens.length} extension `)
+    // console.log(extensionTokens[0])
+
+    const extensions = extensionTokens.map(extensionToken => {
+        /**
+         * Extensions follow the following format:
+         * [
+         *  OBJECT
+         *  BOOLEAN // optional
+         *  OCTETSTRING 
+         * ]
+         * 
+         * The OBJECTs oid indicates the extension
+         * The BOOLEAN indicates if the extension is critical
+         * The OCTETSTRING contains contextual ASN.1 tokens
+         */
+        const tokenCount = extensionToken.parsedResult.length
+
+        const oid = extensionToken.parsedResult[0].parsedResult
+        const extensionName = OID.lookup(oid)
+
+        var critical = false
+        var octetToken
+        if (tokenCount === 2) {
+            octetToken = extensionToken.parsedResult[1]
+        } else {
+            critical = extensionToken.parsedResult[1].parsedResult
+            octetToken = extensionToken.parsedResult[2]
+        }
+
+        // console.log(extensionName)
+        var extensionObj = {
+            extID: extensionName,
+            critical: critical,
+        }
+        switch(oid) {
+            case "2.5.29.14":
+                break
+            case "2.5.29.15":
+                break
+            case "2.5.29.17":
+                break
+            case "2.5.29.19":
+                break
+            case "2.5.29.31":
+                break
+            case "2.5.29.32":
+                break
+            case "2.5.29.33":
+                break
+            case "2.5.29.35":
+                parseExtension_AuthorityKeyIdentifier(extensionObj, octetToken)
+                break
+            case "2.5.29.37":
+                break
+            case "1.3.6.1.5.5.7.1.1":
+                break
+            case "1.3.6.1.4.1.11129.2.4.2":
+                break
+            default:
+                // nothing
+                break
+        }
+        
+        return extensionObj
+    })
+
+    // The comments below are quotes pasted from rfc 5280 section 4.2. These are important
+
+    // When an extension appears in a certificate, the OID appears as the field
+    // extnID and the corresponding ASN.1 DER encoded structure is the value
+    // of the octet string extnValue.
+
+    // An extension includes the boolean critical, with a default value of FALSE.
+
+    // Conforming CAs MUST support key identifiers (Sections 4.2.1.1 and
+    // 4.2.1.2), basic constraints (Section 4.2.1.9), key usage (Section
+    // 4.2.1.3), and certificate policies (Section 4.2.1.4) extensions.
+
+    // If the CA issues certificates with an empty sequence for the subject
+    // field, the CA MUST support the subject alternative name extension
+    // (Section 4.2.1.6).
+
+
+    // At a minimum, applications conforming to this profile MUST recognize
+    //    the following extensions: key usage (Section 4.2.1.3), certificate
+    //    policies (Section 4.2.1.4), subject alternative name (Section
+    //    4.2.1.6), basic constraints (Section 4.2.1.9), name constraints
+    //    (Section 4.2.1.10), policy constraints (Section 4.2.1.11), extended
+    //    key usage (Section 4.2.1.12), and inhibit anyPolicy (Section
+    //    4.2.1.14).
+    //    In addition, applications conforming to this profile SHOULD recognize
+    //    the authority and subject key identifier (Sections 4.2.1.1 and
+    //    4.2.1.2) and policy mappings (Section 4.2.1.5) extensions.
+
+    // extnID is OID
+    // value is OCTET string, which is actually a ASN.1 DER encoded struct
+
+    // End of pasting section
+
+    // return ["Extensions not supported."]
+    return extensions
 }
 
 function parseSignatureAlgorithmTokens(tokens) {
@@ -203,10 +315,18 @@ function parse(buffer) {
     const signatureAlgorithmTokens = certificateTokens[1].parsedResult
     const signatureTokens = certificateTokens[2].parsedResult
 
-    const parsedTbsTokens = tbsTokens.map((token, i) => {
+
+    // required tbs tokens
+    const requiredTokens = tbsTokens.slice(0, TbsTokenOrder.SubjectPublicKeyInfo + 1)
+
+    // optional tokens and extensions
+    const optionalTokens = tbsTokens.slice(TbsTokenOrder.OptionalIssuerUniqueId)
+
+    const parsedTbsTokens = requiredTokens.map((token, i) => {
         return parseTbsToken(i, token)
     })
-    const tbs = {
+
+    var tbs = {
         'version': parsedTbsTokens[TbsTokenOrder.Version],
         'serialNumber': parsedTbsTokens[TbsTokenOrder.SerialNumber],
         'signatureAlgorithm': parsedTbsTokens[TbsTokenOrder.SignatureAlgorithm],
@@ -216,13 +336,36 @@ function parse(buffer) {
         'subjectPublicKeyInfo': parsedTbsTokens[TbsTokenOrder.SubjectPublicKeyInfo],
     }
 
+    // Parse the optional fields and extensions
+    var issuerUniqueId = undefined
+    var subjectUniqueId = undefined
+    var extensions = undefined
+
+    optionalTokens.forEach(token => {
+        if (token.tagStr === "cont [ 1 ]") {
+            // IssuerUniqueId is identified by context-sensitive tag [1]
+            issuerUniqueId = parseIssuerUniqueId(token)
+        } else if (token.tagStr === "cont [ 2 ]") {
+            // SubjectUniqueId is identified by context-sensitive tag [2]
+            subjectUniqueId = parseSubjectUniqueId(token)
+        } else if (token.tagStr === "cont [ 3 ]") {
+            // Extensions is identified by context-sensitive tag [3]
+            extensions = parseExtensions(token)
+        }
+    })
+
+    // Add the optional fields and extensions to the tbs
+    if (issuerUniqueId !== undefined) {
+        tbs.issuerUniqueId = issuerUniqueId
+    }
+    if (subjectUniqueId !== undefined) {
+        tbs.subjectUniqueId = subjectUniqueId
+    }
+    if (extensions !== undefined) {
+        tbs.extensions = extensions
+    }
 
     const signatureAlgorithm = parseSignatureAlgorithmTokens(signatureAlgorithmTokens)
-
-    // console.log(JSON.stringify(tbs, null, 2))
-    // console.log(tbs)
-
-    // console.log(signatureAlgorithm)
 
     return {
         tbs: tbs,

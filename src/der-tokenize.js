@@ -185,3 +185,4 @@ function parse(data) {
 
 exports.tokenize = tokenize
 exports.parse = parse
+exports.get_len = get_len
