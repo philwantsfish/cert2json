@@ -176,6 +176,12 @@ function parseSubjectUniqueId(token) {
 function parseExtension_AuthorityKeyIdentifier(extensionObj, token) {
     return parser.parseExtension_AuthorityKeyIdentifier(extensionObj, token.value)
 }
+function parseExtension_SubjectKeyIdentifier(extensionObj, token) {
+    return parser.parseExtension_AuthorityKeyIdentifier(extensionObj, token.value)
+}
+function parseExtension_KeyUsage(extensionObj, token) {
+    return parser.parseExtension_KeyUsage(extensionObj, token.value)
+}
 
 function parseExtensions(token) {
     const extensionTokens = token.parsedResult[0].parsedResult
@@ -216,8 +222,10 @@ function parseExtensions(token) {
         }
         switch(oid) {
             case "2.5.29.14":
+                parseExtension_SubjectKeyIdentifier(extensionObj, octetToken)
                 break
             case "2.5.29.15":
+                parseExtension_KeyUsage(extensionObj, octetToken)
                 break
             case "2.5.29.17":
                 break

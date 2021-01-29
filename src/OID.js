@@ -32,7 +32,7 @@ const OID = {
     "2.5.29.35": "X509v3 Authority Key Identifier",
     "2.5.29.37": "X509v3 Extended Key Usage",
     "1.3.6.1.5.5.7.1.1": "Authority Information Access",
-    "1.3.6.1.4.1.11129.2.4.2": "???" // 04 81 f0 00 f1
+    "1.3.6.1.4.1.11129.2.4.2": "1.3.6.1.4.1.11129.2.4.2" // openssl lists this extension as this oid 
 }
 
 

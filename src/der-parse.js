@@ -352,6 +352,37 @@ function parseExtension_AuthorityKeyIdentifier(extensionObj, bytes) {
     return extensionObj
 }
 
+function parseExtension_AuthorityKeyIdentifier(extensionObj, bytes) {
+    return {}
+}
+function parseExtension_KeyUsage(extensionObj, bytes) {
+    if (bytes.readUInt8(0) !== 0x03) {
+        throw new Error("Error: Key Usage extension expected a 2 bytes BITSRING token, but got the following bytes", bytes)
+    }
+    
+    const usages = []
+    
+    if (bytes.readUInt8(1) === 0x02) {
+        const bitshift = bytes.readUInt8(2)
+        const flags = bytes.readUInt8(3) >>> bitshift
+
+        if ((flags & 0x01) === 0x01) usages.push("Digital Signature")
+        if ((flags & 0x02) === 0x02) usages.push("Content Commitment")
+        if ((flags & 0x04) === 0x04) usages.push("Key Encipherment")
+        if ((flags & 0x08) === 0x08) usages.push("Data Encipherment")
+        if ((flags & 0x10) === 0x10) usages.push("Key Agreement")
+        if ((flags & 0x20) === 0x20) usages.push("Key Cert Sign")
+        if ((flags & 0x40) === 0x40) usages.push("cRLSign")
+        if ((flags & 0x80) === 0x80) usages.push("Data Encipherment")
+    } else {
+        // If len is 3, then we have to handle this differently. Throw error for now...
+        throw new Error("Error: Key Usage extension error condition. Submit a but with the certificate.")
+    }
+
+    extensionObj.usages = usages
+    return extensionObj
+}
+
 
 exports.shiftToLeadingBits = shiftToLeadingBits
 exports.getLeadingAndZeroBits = getLeadingAndZeroBits
@@ -367,3 +398,5 @@ exports.parseUtf8String = parseUtf8String
 exports.parse = parse
 
 exports.parseExtension_AuthorityKeyIdentifier = parseExtension_AuthorityKeyIdentifier
+exports.parseExtension_AuthorityKeyIdentifier = parseExtension_AuthorityKeyIdentifier
+exports.parseExtension_KeyUsage = parseExtension_KeyUsage
