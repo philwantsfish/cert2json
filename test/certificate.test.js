@@ -53,23 +53,37 @@ test('parseExtension_AuthorityKeyIdentifier', () => {
     expect(extension.critical).toBe(expected.critical)
 })
 
-test('parse a certificate', () => {
-    const cert = certificate.parse(data)
-    // console.log(JSON.stringify(cert, null, 2))
+test('parseExtension_BasicConstraints', () => {
+    const bytes = Buffer.from([0x30, 0x00])
+    const tlv = {
+        tag: 4,
+        tagStr: 'OCTETSTRING',
+        len: 2,
+        value: bytes,
+        lenOfTlv: 4,
+        lenOfLen: 1,
+        offset: 8,
+        parsedResult: { hex: '30:00' }
+    }
+    const startExtensionObj = {
+        "extnID": "X509v3 Basic Constraints",
+        "critical": true,
+    }
+    const extension = certificate.parseExtension_BasicConstraints(startExtensionObj, tlv)
+
+    expected = {
+        "extnID": "X509v3 Basic Constraints",
+        "critical": true,
+        "cA": false
+    }
+
+    expect(extension.cA).toBe(expected.cA)
+    expect(extension.extnID).toBe(expected.extnID)
+    expect(extension.critical).toBe(expected.critical)
 })
 
+test('parse a certificate', () => {
+    const cert = certificate.parse(data)
+    console.log(JSON.stringify(cert, null, 2))
+})
 
-// function recurse(tlv) {
-//     const parsedResult = tlv.parsedResult
-//     if (Array.isArray(parsedResult)) {
-//         const arr = []
-//         parsedResult.forEach(r => {
-//             const item = recurse(r)
-//             arr.push(item)
-//         })
-//         return arr
-//     } else {
-//         // Not an array, stop recursing
-//         return parsedResult
-//     }
-// }

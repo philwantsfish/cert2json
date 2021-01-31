@@ -3,7 +3,7 @@ const OID = require('./OID')
 const utils = require('./utils')
 
 // NOTES
-// This file contains the necessary functions to convert the parsed TLV tokens into a Certificate. 
+// This file contains the necessary functions to convert parsed TLV tokens into a Certificate. 
 
 function bytesToHex(bytes) {
     const hex = []
@@ -40,23 +40,6 @@ function parseTbsToken(tokenOrder, token) {
             return parseSubject(token)
         case TbsTokenOrder.SubjectPublicKeyInfo:
             return parseSubjectPublicKeyInfo(token)
-        case TbsTokenOrder.OptionalIssuerUniqueId:
-            return parseIssuerUniqueId(token)
-        case TbsTokenOrder.OptionalSubjectUniqueId:
-            return parseSubjectUniqueId(token)
-        case TbsTokenOrder.Extensions:
-            return parseExtensions(token)
-            // if (token.tagStr === "cont [ 1 ]") {
-            //     // IssuerUniqueId is identified by context-sensitive tag [1]
-            //     parseIssuerUniqueId(token)
-            // } else if (token.tagStr === "cont [ 2 ]") {
-            //     // SubjectUniqueId is identified by context-sensitive tag [2]
-            //     parseSubjectUniqueId(token)
-            // } else if (token.tagStr === "cont [ 3 ]") {
-            //     // Extensions is identified by context-sensitive tag [3]
-            //     return parseExtensions(token)
-            // }
-            // throw new Error(`Not supported yet ${tokenOrder}`)
         default:
             const msg = `Error in parseTbsToken. There shouldn't be this many tokens: ${tokenOrder}`
             // console.log(msg)
@@ -231,12 +214,23 @@ function parseExtension_KeyUsage(extensionObj, token) {
     return extensionObj
 }
 
+function parseExtension_BasicConstraints(extensionObj, token) {
+    extensionObj.cA = false
+
+    const tokens = asn1.tokenize(token.value)[0]
+    if (tokens[0] !== undefined) {
+        extensionObj = cA = tokens[0].parsedResult
+    } 
+    if (tokens[1] !== undefined) {
+        extensionObj.pathLenConstraint = parseInt(tokens[1].parsedResult)
+    }
+    return extensionObj
+}
+
 
 function parseExtensions(token) {
     // Extension are in context specific tag 3
     const extensionTokens = asn1.tokenize(token.value)[0].parsedResult
-    // console.log(`[+] ${extensionTokens.length} extension `)
-    // console.log(extensionTokens[0])
 
     const extensions = extensionTokens.map(extensionToken => {
         /**
@@ -279,6 +273,7 @@ function parseExtensions(token) {
             case "2.5.29.17":
                 break
             case "2.5.29.19":
+                parseExtension_BasicConstraints(extensionObj, octetToken)
                 break
             case "2.5.29.31":
                 break
@@ -435,4 +430,5 @@ function parse(buffer) {
 
 exports.parseVersion = parseVersion
 exports.parseExtension_AuthorityKeyIdentifier = parseExtension_AuthorityKeyIdentifier
+exports.parseExtension_BasicConstraints = parseExtension_BasicConstraints
 exports.parse = parse

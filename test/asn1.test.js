@@ -24,8 +24,3 @@ test('asn1 should successfully parse the Google certificate', () => {
     expect(sequence1_3.parsedResult[0].parsedResult).toBe("1.2.840.113549.1.1.11")
     sequence1_3.parsedResult[1].tagStr = "NULL"
 })
-
-test('Some name', () => {
-    const certificateData = asn1.parse(data)
-    // console.log(JSON.stringify(certificateData, null, 2))
-})

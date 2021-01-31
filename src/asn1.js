@@ -161,28 +161,28 @@ function tokenize(data) {
 }
 
 
-function parse(data) {
-    function recurse(tlv) {
-        const parsedResult = tlv.parsedResult
-        if (Array.isArray(parsedResult)) {
-            const arr = []
-            parsedResult.forEach(r => {
-                const item = recurse(r)
-                arr.push(item)
-            })
-            return arr
-        } else {
-            // Not an array, stop recursing
-            return parsedResult
-        }
-    }
-    const tlvs = tokenize(data)
-    if (tlvs.length > 1) {
-        throw new Error("Root node has more than one TLV")
-    }
-    return recurse(tlvs[0])
-}
+// function parse(data) {
+//     function recurse(tlv) {
+//         const parsedResult = tlv.parsedResult
+//         if (Array.isArray(parsedResult)) {
+//             const arr = []
+//             parsedResult.forEach(r => {
+//                 const item = recurse(r)
+//                 arr.push(item)
+//             })
+//             return arr
+//         } else {
+//             // Not an array, stop recursing
+//             return parsedResult
+//         }
+//     }
+//     const tlvs = tokenize(data)
+//     if (tlvs.length > 1) {
+//         throw new Error("Root node has more than one TLV")
+//     }
+//     return recurse(tlvs[0])
+// }
 
 exports.tokenize = tokenize
-exports.parse = parse
+// exports.parse = parse
 exports.get_len = get_len

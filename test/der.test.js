@@ -118,14 +118,17 @@ test('Parse all TLVs in a certificate', () => {
 })
 
 test('A Sequence with context specific tags', () => {
+    // Expecting to parse SEQUENCE[ cont[0], octetstring ]
     const rawBytes = [
         0x30, 0x16, 0x80, 0x14, 0x98, 0xd1, 0xf8, 0x6e, 0x10, 0xeb, 0xcf, 0x9b,
         0xec, 0x60, 0x9f, 0x18, 0x90, 0x1b, 0xa0, 0xeb, 0x7d, 0x09, 0xfd, 0x2b
     ]
     const bytes = Buffer.from(rawBytes)
 
-    // Expecting to parse SEQUENCE[ cont[0], octetstring ]
     const tokens = asn1.tokenize(bytes)
-    // console.log(tokens[0].parsedResult)
-    // expect(1).toBe(2)
+    expect(tokens.length).toBe(1)
+
+    const cont0 = tokens[0].parsedResult
+    expect(cont0.length).toBe(1)
+    expect(cont0[0].tagStr).toBe('cont [ 0 ]')
 })
