@@ -198,7 +198,7 @@ function parseExtension_KeyUsage(extensionObj, token) {
         const flags = bytes.readUInt8(3) >>> bitshift
 
         if ((flags & 0x01) === 0x01) usages.push("Digital Signature")
-        if ((flags & 0x02) === 0x02) usages.push("Content Commitment")
+        if ((flags & 0x02) === 0x02) usages.push("Content Commitment (Certificate Signing)")
         if ((flags & 0x04) === 0x04) usages.push("Key Encipherment")
         if ((flags & 0x08) === 0x08) usages.push("Data Encipherment")
         if ((flags & 0x10) === 0x10) usages.push("Key Agreement")
@@ -217,12 +217,14 @@ function parseExtension_KeyUsage(extensionObj, token) {
 function parseExtension_BasicConstraints(extensionObj, token) {
     extensionObj.cA = false
 
-    const tokens = asn1.tokenize(token.value)[0]
+    const tokens = asn1.tokenize(token.value)[0].parsedResult
     if (tokens[0] !== undefined) {
-        extensionObj = cA = tokens[0].parsedResult
+        extensionObj.cA = tokens[0].parsedResult
     } 
+
     if (tokens[1] !== undefined) {
-        extensionObj.pathLenConstraint = parseInt(tokens[1].parsedResult)
+        const pathLenConstraint = parseInt(tokens[1].parsedResult)
+        extensionObj.pathLenConstraint = pathLenConstraint
     }
     return extensionObj
 }

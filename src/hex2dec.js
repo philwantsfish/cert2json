@@ -81,6 +81,11 @@ function add(x, y, base) {
     for (var i = outArray.length - 1; i >= 0; i--) {
       out += outArray[i].toString(toBase);
     }
+
+    if (out === '') {
+      return '0'
+    }
+
     return out;
   }
   

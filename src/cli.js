@@ -14,7 +14,7 @@ function isPem(data) {
 
 const arguments = process.argv.slice(2)
 
-if (arguments.length !== 1) {
+if (arguments.length !== 1 || arguments.includes('-h') || arguments.includes('--help')) {
     print_help()
     return
 }

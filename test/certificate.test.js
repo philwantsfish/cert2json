@@ -3,7 +3,10 @@ const path = require('path');
 const fs = require('fs');
 
 const GoogleCertificatePath = `${path.resolve('./test-data/google.com.cer')}`
-const data = fs.readFileSync(GoogleCertificatePath)
+const googleCertificateData = fs.readFileSync(GoogleCertificatePath)
+
+const PinterestInterCertificatePath = `${path.resolve('./test-data/pinterest-interm.pem')}`
+const pinterestInterCertificateData = fs.readFileSync(PinterestInterCertificatePath)
 
 test('parseVersion', () => {
     const bytes = Buffer.from([ 0x02, 0x01, 0x02 ])
@@ -82,8 +85,38 @@ test('parseExtension_BasicConstraints', () => {
     expect(extension.critical).toBe(expected.critical)
 })
 
+test('parseExtension_BasicConstraints with cA', () => {
+    const bytes = Buffer.from([0x30, 0x06, 0x01, 0x01, 0xff, 0x02, 0x01, 0x00])
+    const tlv = {
+        tag: 4,
+        tagStr: 'OCTETSTRING',
+        len: 8,
+        value: bytes,
+        lenOfTlv: 10,
+        lenOfLen: 1,
+        offset: 8,
+        parsedResult: { hex: '30:06:01:01:ff:02:01:00' }
+    }
+    const startExtensionObj = {
+        "extnID": "X509v3 Basic Constraints",
+        "critical": true,
+    }
+    const extension = certificate.parseExtension_BasicConstraints(startExtensionObj, tlv)
+
+    expected = {
+        "extnID": "X509v3 Basic Constraints",
+        "critical": true,
+        "cA": true
+    }
+
+    expect(extension.cA).toBe(expected.cA)
+    expect(extension.extnID).toBe(expected.extnID)
+    expect(extension.critical).toBe(expected.critical)
+    expect(extension.pathLenConstraint).toBe(0)
+})
+
 test('parse a certificate', () => {
-    const cert = certificate.parse(data)
-    console.log(JSON.stringify(cert, null, 2))
+    const cert = certificate.parse(googleCertificateData)
+    // console.log(JSON.stringify(cert, null, 2))
 })
 

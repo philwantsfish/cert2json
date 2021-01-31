@@ -11,6 +11,13 @@ test("Parse a small INTEGER", () => {
     expect(actual).toBe('42')
 })
 
+test("parseInteger 0x00 ", () => {
+    const bytes = [0x00]
+    const byteArray = Buffer.from(bytes)
+    const actual = DER.parseInteger(byteArray)
+    expect(actual).toBe('0')
+})
+
 test("Parse a large INTEGER", () => {
     const bytes = [0x6E, 0x43, 0x18, 0xB8, 0xD7, 0x90, 0x16, 0x5C, 0x03, 0x00, 0x00, 0x00, 0x00, 0xBA, 0xDB, 0x8A]
     const byteArray = Buffer.from(bytes)
