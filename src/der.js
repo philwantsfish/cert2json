@@ -1,15 +1,10 @@
 const Constants = require('./constants')
 const TagTypes = Constants.TagTypes
-const UniversalTags = Constants.UniversalTags
 const hex2dec = require('./hex2dec')
-
-// This import is dodgey. ctrl+f TODO to see why I'm pulling it in
-const tokenize = require('./der-tokenize')
-
-
+const utils = require('./utils')
 
 // NOTES
-// The tokenize file converts the binary blob (certificate) into TLV tokens. The value (V) of those tokens is still binary at this point.
+// The asn1 file converts the binary blob (certificate) into TLV tokens. The value (V) of those tokens is still binary at this point.
 // These functions parse those small binary blobs into meaningful types: Boolean, Integer, UTCTime, and so on.  
 
 
@@ -184,22 +179,9 @@ function parseBitString(bytes) {
 }
 
 function parseOctetString(bytes) {
-    var hex = []
-    bytes.forEach(b => hex.push(("0" + b.toString(16)).slice(-2)))
-    hex = hex.join(":")
-
-    // TODO: Revisit this decision. Much of the OCTET strings are more TLVs. This code is saying
-    // if it can be parsed, then return the parsed result. The most correct code would just return the OCTET
-    // string since it is not possible to know if it contains more TLVs or data 
-    try {
-        const res = tokenize.parse(bytes)
-        return res
-    } catch (err) {
-        return {
-            hex: hex
-        }
+    return {
+        hex: utils.bytesToHex(bytes)
     }
-    
 }
 
 function parseUtcTime(bytes) {
@@ -277,8 +259,6 @@ function getParsingFunction(tagString) {
 
 // Given a TLV, parse the value
 function parse(tlv) {
-    // This is one incredibly ugly function. Make this nicer. Maybe a map of tag string to function
-    // that this can reference.
     const tagStr = Constants.tag_to_type(tlv.tag)
     const tagType = Constants.getTagType(tlv.tag)
     switch (tagType) {
@@ -288,100 +268,16 @@ function parse(tlv) {
                 throw new Error(`No parsing function for ${tagStr} ${tlv.tag.toString(16)}`)
             }
             var parsedResult = parsingFunc(tlv.value)
-            // tlv.parsed = parsedResult
-            // return tlv 
             return parsedResult
         case TagTypes.Application:
             throw new Error("err")
         case TagTypes.ContextSpecific:
-            // return ['ContextSpecific', null]
-            // tlv.parsed = []
-            // return tlv 
-            var parsedResult = []
-            return parsedResult
+            throw new Error("err")
         case TagTypes.Private:
             throw new Error("err")
     }
 }
 
-function parseExtension_AuthorityKeyIdentifier(extensionObj, bytes) {
-    function bytesToHex(bytes, offset) {
-        const [lenOfLen, len] = tokenize.get_len(bytes, offset + 1)
-        const start = offset + 1 + lenOfLen
-        const keyIdBytes = bytes.slice(start, start + len)
-
-        var hex = []
-        keyIdBytes.forEach(b => hex.push(("0" + b.toString(16)).slice(-2)))
-        hex = hex.join(":")
-        return hex
-    }
-    /**
-     * This token has the following format:
-     * 
-     *  AuthorityKeyIdentifier ::= SEQUENCE {
-     *  keyIdentifier             [0] KeyIdentifier           OPTIONAL,
-     *  authorityCertIssuer       [1] GeneralNames            OPTIONAL,
-     *  authorityCertSerialNumber [2] CertificateSerialNumber OPTIONAL  }
-     * 
-     */
-    if (bytes.readInt8(0) !== 0x30) {
-        throw new Error("Invalid AuthorityKeyIdentifier. Expected a SEQUENCE token.")
-    }
-
-    const [lenOfLen, len] = tokenize.get_len(bytes, 1)
-    const remainingBytes = bytes.slice(1 + lenOfLen)
-
-    var offset = 0
-    var result = {}
-    while (offset < remainingBytes.length) {
-        const contextualTag = remainingBytes.readUInt8(0)
-        const [lenOfLen, len] = tokenize.get_len(remainingBytes, offset + 1)
-        if (contextualTag === 0x80) {
-            extensionObj.KeyIdentifier = bytesToHex(remainingBytes, offset + 1)
-            offset = offset + 1 + lenOfLen + len
-        } else if (contextualTag === 0x81) {
-            extensionObj.GeneralNames = bytesToHex(remainingBytes, offset + 1)
-            offset = offset + 1 + lenOfLen + len
-        } else if (contextualTag === 0x82) {
-            extensionObj.CertificateSerialNumber = bytesToHex(remainingBytes, offset + 1)
-            offset = offset + 1 + lenOfLen + len
-        } else {
-            throw new Error(`Error: AuthorityKeyIdentifer had unexpected contextual tag ${contextualTag} ${0x80}`)
-        }
-    }
-    return extensionObj
-}
-
-function parseExtension_AuthorityKeyIdentifier(extensionObj, bytes) {
-    return {}
-}
-function parseExtension_KeyUsage(extensionObj, bytes) {
-    if (bytes.readUInt8(0) !== 0x03) {
-        throw new Error("Error: Key Usage extension expected a 2 bytes BITSRING token, but got the following bytes", bytes)
-    }
-    
-    const usages = []
-    
-    if (bytes.readUInt8(1) === 0x02) {
-        const bitshift = bytes.readUInt8(2)
-        const flags = bytes.readUInt8(3) >>> bitshift
-
-        if ((flags & 0x01) === 0x01) usages.push("Digital Signature")
-        if ((flags & 0x02) === 0x02) usages.push("Content Commitment")
-        if ((flags & 0x04) === 0x04) usages.push("Key Encipherment")
-        if ((flags & 0x08) === 0x08) usages.push("Data Encipherment")
-        if ((flags & 0x10) === 0x10) usages.push("Key Agreement")
-        if ((flags & 0x20) === 0x20) usages.push("Key Cert Sign")
-        if ((flags & 0x40) === 0x40) usages.push("cRLSign")
-        if ((flags & 0x80) === 0x80) usages.push("Data Encipherment")
-    } else {
-        // If len is 3, then we have to handle this differently. Throw error for now...
-        throw new Error("Error: Key Usage extension error condition. Submit a but with the certificate.")
-    }
-
-    extensionObj.usages = usages
-    return extensionObj
-}
 
 
 exports.shiftToLeadingBits = shiftToLeadingBits
@@ -396,7 +292,3 @@ exports.parseUtcTime = parseUtcTime
 exports.parseGeneralizedTime = parseGeneralizedTime
 exports.parseUtf8String = parseUtf8String
 exports.parse = parse
-
-exports.parseExtension_AuthorityKeyIdentifier = parseExtension_AuthorityKeyIdentifier
-exports.parseExtension_AuthorityKeyIdentifier = parseExtension_AuthorityKeyIdentifier
-exports.parseExtension_KeyUsage = parseExtension_KeyUsage

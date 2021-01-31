@@ -1,12 +1,12 @@
 const path = require('path');
 const fs = require('fs')
-const tokenize = require('../src/der-tokenize')
+const asn1 = require('../src/asn1')
 
 const GoogleCertificatePath = `${path.resolve('./test-data/google.com.cer')}`
 const data = fs.readFileSync(GoogleCertificatePath)
 
-test('tokenize should successfully parse the Google certificate', () => {
-    const tokens = tokenize.tokenize(data, 0)
+test('asn1 should successfully parse the Google certificate', () => {
+    const tokens = asn1.tokenize(data, 0)
     expect(tokens.length).toBe(1)
     expect(tokens[0].tagStr).toBe("SEQUENCE")
 
@@ -26,6 +26,6 @@ test('tokenize should successfully parse the Google certificate', () => {
 })
 
 test('Some name', () => {
-    const certificateData = tokenize.parse(data)
+    const certificateData = asn1.parse(data)
     // console.log(JSON.stringify(certificateData, null, 2))
 })

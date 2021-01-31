@@ -38,8 +38,7 @@ const UniversalTags = Object.freeze({
 })
 
 function tag_to_type(tag) {
-    const ContextSpecific = 0xA0
-    if ((tag & 0xF0) === ContextSpecific) {
+    if (getTagType(tag) === TagTypes.ContextSpecific) {
         const n = (tag & 0x0F)
         return `cont [ ${n} ]`
     }

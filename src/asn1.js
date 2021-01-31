@@ -1,13 +1,13 @@
 const Constants = require('./constants')
 const TagTypes = Constants.TagTypes
-const DER = require('./der-parse')
+const DER = require('./der')
 
 
 // NOTES
 // This file contains the necessary functions to convert a binary certificate file (DER) into a set of TVL tokens. 
 
 function get_len(data, offset) {
-    const leadingByte = data.readInt8(offset)
+    const leadingByte = data.readUInt8(offset)
     const lenHasMultipleBytes = (leadingByte & 0x80) === 0x80
     if (lenHasMultipleBytes) {
         const numBytes = leadingByte & 0x7F
@@ -23,7 +23,7 @@ function get_len(data, offset) {
                 len = data.readUInt32BE(offset + 1)
                 break;
             default: 
-                throw new Error(`Expected numBytes to be one of [1, 2, 4], but got ${numBytes}`)
+                throw new Error(`Expected numBytes to be one of [1, 2, 4], but got 0x${numBytes.toString(16)}, original byte 0x${leadingByte.toString(16)}`)
         }
         return [numBytes + 1, len]
     } else {
@@ -33,9 +33,9 @@ function get_len(data, offset) {
 
 function isTagAList(tag) {
     return (
-        tag === Constants.UniversalTags.SEQUENCE ||
-        tag === Constants.UniversalTags.SET ||
-        Constants.getTagType(tag) === Constants.TagTypes.ContextSpecific    
+        tag === Constants.UniversalTags.SEQUENCE 
+        || tag === Constants.UniversalTags.SET 
+        // || Constants.getTagType(tag) === Constants.TagTypes.ContextSpecific    
     ) 
 }
 
@@ -106,18 +106,18 @@ function get_tlv_contextspecific(data, offset) {
         offset: offset
     }
 
-    const tlvs = []
-    var subOffset = 0
-    while(true) {
-        const tlv = get_tlv(value, subOffset)
-        if (tlv !== undefined) {
-            tlvs.push(tlv)
-            subOffset = subOffset + tlv.lenOfTlv
-        } else {
-            break
-        }
-    }
-    tlv.parsedResult = tlvs
+    // const tlvs = []
+    // var subOffset = 0
+    // while(true) {
+    //     const tlv = get_tlv(value, subOffset)
+    //     if (tlv !== undefined) {
+    //         tlvs.push(tlv)
+    //         subOffset = subOffset + tlv.lenOfTlv
+    //     } else {
+    //         break
+    //     }
+    // }
+    // tlv.parsedResult = tlvs
 
     return tlv
 }

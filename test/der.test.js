@@ -1,5 +1,5 @@
-const DER = require('../src/der-parse');
-const tokenize = require('../src/der-tokenize')
+const DER = require('../src/der');
+const asn1 = require('../src/asn1')
 const path = require('path');
 const fs = require('fs')
 const { constants } = require('buffer');
@@ -107,7 +107,7 @@ test('Parse all TLVs in a certificate', () => {
     // const path = '../test-data/google.com.cer'
     const data = fs.readFileSync(GoogleCertificatePath)
 
-    // const tlvs = tokenize.tokenize(data, 0)
+    // const tlvs = asn1.asn1(data, 0)
     // const parsedTlvs = tlvs.map(tlv => DER.parse(tlv))
     // expect(parsedTlvs.length).toBe(88)
 
@@ -115,4 +115,17 @@ test('Parse all TLVs in a certificate', () => {
     // parsedTlvs.forEach(ptlv => {
     //     console.log(`${ptlv.tag}: ${JSON.stringify(ptlv.parsed)}`)
     // })
+})
+
+test('A Sequence with context specific tags', () => {
+    const rawBytes = [
+        0x30, 0x16, 0x80, 0x14, 0x98, 0xd1, 0xf8, 0x6e, 0x10, 0xeb, 0xcf, 0x9b,
+        0xec, 0x60, 0x9f, 0x18, 0x90, 0x1b, 0xa0, 0xeb, 0x7d, 0x09, 0xfd, 0x2b
+    ]
+    const bytes = Buffer.from(rawBytes)
+
+    // Expecting to parse SEQUENCE[ cont[0], octetstring ]
+    const tokens = asn1.tokenize(bytes)
+    // console.log(tokens[0].parsedResult)
+    // expect(1).toBe(2)
 })

@@ -1,6 +1,6 @@
-const tokenize = require('./der-tokenize')
-const parser = require('./der-parse')
+const asn1 = require('./asn1')
 const OID = require('./OID')
+const utils = require('./utils')
 
 // NOTES
 // This file contains the necessary functions to convert the parsed TLV tokens into a Certificate. 
@@ -67,7 +67,8 @@ function parseTbsToken(tokenOrder, token) {
 
 
 function parseVersion(token) {
-    const version = parseInt(token.parsedResult[0].parsedResult) + 1
+    const versionTlv = asn1.tokenize(token.value)[0]
+    const version = parseInt(versionTlv.parsedResult) + 1
     return version
 }
 
@@ -168,24 +169,73 @@ function parseSubjectPublicKeyInfo(token) {
 function parseIssuerUniqueId(token) {
     throw new Error("Issuer unique id not supported.")
 }
+
 function parseSubjectUniqueId(token) {
     throw new Error("Subject unique id not supported.")
 }
 
-
 function parseExtension_AuthorityKeyIdentifier(extensionObj, token) {
-    return parser.parseExtension_AuthorityKeyIdentifier(extensionObj, token.value)
+    const tokens = asn1.tokenize(token.value)[0].parsedResult
+
+    /**
+     * This token has the following format:
+     * 
+     *  AuthorityKeyIdentifier ::= SEQUENCE {
+     *  keyIdentifier             [0] KeyIdentifier           OPTIONAL,
+     *  authorityCertIssuer       [1] GeneralNames            OPTIONAL,
+     *  authorityCertSerialNumber [2] CertificateSerialNumber OPTIONAL  }
+     * 
+     */
+    tokens.forEach(token => {
+        const contextualTag = token.tagStr
+        if (contextualTag === "cont [ 0 ]") {
+            extensionObj.KeyIdentifier = utils.bytesToHex(token.value)
+        } else if (contextualTag === "cont [ 1 ]") {
+            extensionObj.GeneralNames = utils.bytesToHex(token.value)
+        } else if (contextualTag === "cont [ 2 ]") {
+            extensionObj.CertificateSerialNumber = utils.bytesToHex(token.value)
+        } else {
+            throw new Error(`Error: AuthorityKeyIdentifer had unexpected contextual tag ${contextualTag}`)
+        }
+    })
+
+    return extensionObj
 }
-function parseExtension_SubjectKeyIdentifier(extensionObj, token) {
-    return parser.parseExtension_AuthorityKeyIdentifier(extensionObj, token.value)
-}
+
 function parseExtension_KeyUsage(extensionObj, token) {
-    return parser.parseExtension_KeyUsage(extensionObj, token.value)
+    const bytes = token.value
+    if (bytes.readUInt8(0) !== 0x03) {
+        throw new Error("Error: Key Usage extension expected a 2 bytes BITSRING token, but got the following bytes", bytes)
+    }
+    
+    const usages = []
+    
+    if (bytes.readUInt8(1) === 0x02) {
+        const bitshift = bytes.readUInt8(2)
+        const flags = bytes.readUInt8(3) >>> bitshift
+
+        if ((flags & 0x01) === 0x01) usages.push("Digital Signature")
+        if ((flags & 0x02) === 0x02) usages.push("Content Commitment")
+        if ((flags & 0x04) === 0x04) usages.push("Key Encipherment")
+        if ((flags & 0x08) === 0x08) usages.push("Data Encipherment")
+        if ((flags & 0x10) === 0x10) usages.push("Key Agreement")
+        if ((flags & 0x20) === 0x20) usages.push("Key Cert Sign")
+        if ((flags & 0x40) === 0x40) usages.push("cRLSign")
+        if ((flags & 0x80) === 0x80) usages.push("Data Encipherment")
+    } else {
+        // If len is 3, then we have to handle this differently. Throw error for now...
+        throw new Error("Error: Key Usage extension error condition. Submit a but with the certificate.")
+    }
+
+    extensionObj.usages = usages
+    return extensionObj
 }
+
 
 function parseExtensions(token) {
-    const extensionTokens = token.parsedResult[0].parsedResult
-    console.log(`[+] ${extensionTokens.length} extension `)
+    // Extension are in context specific tag 3
+    const extensionTokens = asn1.tokenize(token.value)[0].parsedResult
+    // console.log(`[+] ${extensionTokens.length} extension `)
     // console.log(extensionTokens[0])
 
     const extensions = extensionTokens.map(extensionToken => {
@@ -222,7 +272,6 @@ function parseExtensions(token) {
         }
         switch(oid) {
             case "2.5.29.14":
-                parseExtension_SubjectKeyIdentifier(extensionObj, octetToken)
                 break
             case "2.5.29.15":
                 parseExtension_KeyUsage(extensionObj, octetToken)
@@ -313,7 +362,7 @@ function parseSignatureAlgorithmTokens(tokens) {
 }
 
 function parse(buffer) {
-    const tlvs = tokenize.tokenize(buffer, 0)
+    const tlvs = asn1.tokenize(buffer, 0)
     // expect(tlvs.length).toBe(1)
 
     const certificateTokens = tlvs[0].parsedResult
@@ -384,4 +433,6 @@ function parse(buffer) {
 
 
 
+exports.parseVersion = parseVersion
+exports.parseExtension_AuthorityKeyIdentifier = parseExtension_AuthorityKeyIdentifier
 exports.parse = parse
