@@ -157,6 +157,24 @@ function parseSubjectUniqueId(token) {
     throw new Error("Subject unique id not supported.")
 }
 
+function parseExtension_SubjectKeyIdentifier(extensionObj, token) {
+    const subjectKeyIdentifierBytes = asn1.tokenize(token.value)[0].parsedResult.hex
+    extensionObj.hex = subjectKeyIdentifierBytes
+    return extensionObj
+}
+function parseExtension_ExtendedKeyUsage(extensionObj, token) {
+    const objects = asn1.tokenize(token.value)[0].parsedResult
+    const usages = objects.map(obj => {
+        const oid = obj.parsedResult
+        const usage = OID.lookup(oid)
+        return usage
+    })
+
+    extensionObj.usages = usages
+    return extensionObj
+
+}
+
 function parseExtension_AuthorityKeyIdentifier(extensionObj, token) {
     const tokens = asn1.tokenize(token.value)[0].parsedResult
 
@@ -182,6 +200,21 @@ function parseExtension_AuthorityKeyIdentifier(extensionObj, token) {
         }
     })
 
+    return extensionObj
+}
+
+function parseExtension_SubjectAlternativeName(extensionObj, token) {
+    const altNameTokens = asn1.tokenize(token.value)[0].parsedResult
+    const alternativeNames = altNameTokens.map(nameToken => {
+        switch(nameToken.tagStr) {
+            case "cont [ 1 ]":
+            case "cont [ 2 ]":
+                return nameToken.value.toString()
+            default:
+                throw new Error(`Error: error parsing extension Subject Alternative Name. No support for ${nameToken.tagStr}`)
+        }
+    })
+    extensionObj.alternativeNames = alternativeNames
     return extensionObj
 }
 
@@ -212,6 +245,32 @@ function parseExtension_KeyUsage(extensionObj, token) {
 
     extensionObj.usages = usages
     return extensionObj
+}
+
+function parseExtension_DistributionPoints(extensionObj, token) {
+    // TODO: not complete. This one looks complicated
+    const tokens = asn1.tokenize(token.value)[0]//.parsedResult[0].parsedResult
+
+    // console.log(tokens)
+}
+
+function parseExtension_CertificatePolicies(extensionObj, token) {
+    const tokens = asn1.tokenize(token.value)[0].parsedResult
+
+    try {
+        // The policies are a sequence, each sequence has a OID and optional qualifies. Not sure what
+        // the qualifiers look like. I suspect this will crash when passed one. 
+        const policies = tokens.map(t => {
+            return t.parsedResult.map(obj => {
+                return obj.parsedResult
+            })
+        })
+        extensionObj.policies = policies
+        return extensionObj
+    } catch (error) {
+        console.log(`Error: Unable to parse Extension Certificate Policies. Please submit certificate for bugfix`)
+        throw error
+    }
 }
 
 function parseExtension_BasicConstraints(extensionObj, token) {
@@ -268,18 +327,22 @@ function parseExtensions(token) {
         }
         switch(oid) {
             case "2.5.29.14":
+                parseExtension_SubjectKeyIdentifier(extensionObj, octetToken)
                 break
             case "2.5.29.15":
                 parseExtension_KeyUsage(extensionObj, octetToken)
                 break
             case "2.5.29.17":
+                parseExtension_SubjectAlternativeName(extensionObj, octetToken)
                 break
             case "2.5.29.19":
                 parseExtension_BasicConstraints(extensionObj, octetToken)
                 break
             case "2.5.29.31":
+                parseExtension_DistributionPoints(extensionObj, octetToken)
                 break
             case "2.5.29.32":
+                parseExtension_CertificatePolicies(extensionObj, octetToken)
                 break
             case "2.5.29.33":
                 break
@@ -287,6 +350,7 @@ function parseExtensions(token) {
                 parseExtension_AuthorityKeyIdentifier(extensionObj, octetToken)
                 break
             case "2.5.29.37":
+                parseExtension_ExtendedKeyUsage(extensionObj, octetToken)
                 break
             case "1.3.6.1.5.5.7.1.1":
                 break
