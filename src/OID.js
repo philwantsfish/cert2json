@@ -33,6 +33,8 @@ const OID = {
     "2.5.29.37": "X509v3 Extended Key Usage",
     "1.3.6.1.5.5.7.1.1": "Authority Information Access",
     "1.3.6.1.5.5.7.3.1": "TLS Web Server Authentication",
+    "1.3.6.1.5.5.7.48.1": "OCSP",
+    "1.3.6.1.5.5.7.48.2": "CA Issuers",
     "1.3.6.1.4.1.11129.2.4.2": "1.3.6.1.4.1.11129.2.4.2" // openssl lists this extension as this oid 
 }
 

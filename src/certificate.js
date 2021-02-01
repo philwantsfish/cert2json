@@ -162,6 +162,18 @@ function parseExtension_SubjectKeyIdentifier(extensionObj, token) {
     extensionObj.hex = subjectKeyIdentifierBytes
     return extensionObj
 }
+
+function parseExtension_AuthorityInformationAccess(extensionObj, token) {
+    const tokens = asn1.tokenize(token.value)[0].parsedResult
+    tokens.forEach(seq => {
+        const oid = seq.parsedResult[0].parsedResult
+        const oidString = OID.lookup(oid)
+        const generalName = seq.parsedResult[1].value.toString()
+        extensionObj[oidString] = generalName
+    })
+    return extensionObj
+}
+
 function parseExtension_ExtendedKeyUsage(extensionObj, token) {
     const objects = asn1.tokenize(token.value)[0].parsedResult
     const usages = objects.map(obj => {
@@ -173,6 +185,12 @@ function parseExtension_ExtendedKeyUsage(extensionObj, token) {
     extensionObj.usages = usages
     return extensionObj
 
+}
+
+function parseExtension_1_3_6_1_4_1_11129_2_4_2(extensionObj, token) {
+    const tokens = asn1.tokenize(token.value)[0]
+    extensionObj.hex = tokens.parsedResult.hex
+    return extensionObj
 }
 
 function parseExtension_AuthorityKeyIdentifier(extensionObj, token) {
@@ -251,6 +269,12 @@ function parseExtension_DistributionPoints(extensionObj, token) {
     // TODO: not complete. This one looks complicated
     const tokens = asn1.tokenize(token.value)[0]//.parsedResult[0].parsedResult
 
+    // console.log(tokens)
+}
+
+function parseExtension_PolicyMappings(extensionObj, token) {
+    const tokens = asn1.tokenize(token)[0]
+    throw new Error("Error: Extension policy mappings not supported.")
     // console.log(tokens)
 }
 
@@ -345,6 +369,7 @@ function parseExtensions(token) {
                 parseExtension_CertificatePolicies(extensionObj, octetToken)
                 break
             case "2.5.29.33":
+                parseExtension_PolicyMappings(extensionObj, octetToken)
                 break
             case "2.5.29.35":
                 parseExtension_AuthorityKeyIdentifier(extensionObj, octetToken)
@@ -353,8 +378,10 @@ function parseExtensions(token) {
                 parseExtension_ExtendedKeyUsage(extensionObj, octetToken)
                 break
             case "1.3.6.1.5.5.7.1.1":
+                parseExtension_AuthorityInformationAccess(extensionObj, octetToken)
                 break
             case "1.3.6.1.4.1.11129.2.4.2":
+                parseExtension_1_3_6_1_4_1_11129_2_4_2(extensionObj, octetToken)
                 break
             default:
                 // nothing
