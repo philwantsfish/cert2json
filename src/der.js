@@ -39,6 +39,10 @@ function parsePrintableString(value) {
     return value.toString()
 }
 
+function parseIA5String(value) {
+    return value.toString()
+}
+
 
 // Returns a new Uint8 number where the first {num} bits are set from the last N bits of {byte}
 function shiftToLeadingBits(byte, num) {
@@ -247,6 +251,7 @@ const tagToParseFunctionMap = {
     UTCTIME: parseUtcTime,
     GENERALIZEDTCTIME: parseGeneralizedTime,
     UTF8STRING: parseUtf8String,
+    IA5STRING: parseIA5String,
     SEQUENCE: parseSequence,
     SET: parseSet,
     NULL: parseNull,
@@ -259,6 +264,7 @@ function getParsingFunction(tagString) {
 
 // Given a TLV, parse the value
 function parse(tlv) {
+    console.log(`[+] tlv`, tlv)
     const tagStr = Constants.tag_to_type(tlv.tag)
     const tagType = Constants.getTagType(tlv.tag)
     switch (tagType) {
@@ -285,6 +291,7 @@ exports.getLeadingAndZeroBits = getLeadingAndZeroBits
 exports.parseObjectIdentifier = parseObjectIdentifier
 exports.parseInteger = parseInteger
 exports.parsePrintableString = parsePrintableString
+exports.parseIA5String = parseIA5String
 exports.parseBoolean = parseBoolean
 exports.parseBitString = parseBitString
 exports.parseOctetString = parseOctetString

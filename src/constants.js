@@ -31,6 +31,7 @@ const UniversalTags = Object.freeze({
     OBJECT: 0x06,
     UTF8STRING: 0x0C,
     PRINTABLESTRING: 0x13,
+    IA5STRING: 0x16,
     UTCTIME: 0x17,
     GENERALIZEDTIME: 0x18,
     SEQUENCE: 0x30,
@@ -60,6 +61,8 @@ function tag_to_type(tag) {
             return "UTF8STRING"
         case 0x13:
             return "PRINTABLESTRING"
+        case 0x16: 
+            return "IA5STRING"
         case 0x17:
             return "UTCTIME"
         case 0x18:

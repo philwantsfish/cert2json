@@ -116,7 +116,8 @@ test('parseExtension_BasicConstraints with cA', () => {
 })
 
 test('parse a certificate', () => {
-    const cert = certificate.parse(googleCertificateData)
+    // const cert = certificate.parse(googleCertificateData)
+    const cert = certificate.parse(pinterestInterCertificateData)
     console.log(JSON.stringify(cert, null, 2))
 })
 
