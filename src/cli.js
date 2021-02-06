@@ -40,7 +40,6 @@ if (isPem(data)) {
     const certificate = parser.parse(buf)
     console.log(JSON.stringify(certificate, null, 2))
 } else {
-    console.log(`[+] Assuming certificate is der format`)
     const certificate = parser.parse(data)
     console.log(JSON.stringify(certificate, null, 2))
 }

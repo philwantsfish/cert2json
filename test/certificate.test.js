@@ -180,3 +180,8 @@ test('Debugging test that prints a certificate', () => {
     // console.log(JSON.stringify(cert, null, 2))
 })
 
+test('x', () => {
+    // the x509test github project has many test certificates. 
+    // try parsing all of these
+    // https://github.com/google/x509test/tree/master/tbs
+})
