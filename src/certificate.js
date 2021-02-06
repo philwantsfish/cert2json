@@ -279,15 +279,28 @@ function parseExtension_PolicyMappings(extensionObj, token) {
 }
 
 function parseExtension_CertificatePolicies(extensionObj, token) {
+    // function to parse the optional policy qualifiers
+    function parseQualifier(qualifierToken) {
+        const arr = qualifierToken.parsedResult[0].parsedResult
+
+        return {
+            oid: arr[0].parsedResult,
+            str: arr[1].parsedResult
+        }
+    }
     const tokens = asn1.tokenize(token.value)[0].parsedResult
 
     try {
-        // The policies are a sequence, each sequence has a OID and optional qualifies. Not sure what
-        // the qualifiers look like. I suspect this will crash when passed one. 
+        // The policies are a sequence, each sequence has a OID and optional qualifies. 
         const policies = tokens.map(t => {
-            return t.parsedResult.map(obj => {
-                return obj.parsedResult
-            })
+            const policyOid = t.parsedResult[0].parsedResult
+            const optionalQualifierTokens = t.parsedResult.slice(1)
+            const optionalQualifiers = optionalQualifierTokens.map(oqToken => parseQualifier(oqToken))
+
+            return {
+                oid: policyOid,
+                qualifiers: optionalQualifiers
+            }
         })
         extensionObj.policies = policies
         return extensionObj
@@ -449,6 +462,13 @@ function parseSignatureAlgorithmTokens(tokens) {
     }
 }
 
+function parsePem(pem) {
+    const b64 = pem.toString().replace(/(-----(BEGIN|END) CERTIFICATE-----|[\n\r])/g, '')
+    // The remaining data is base64 encoded
+    const buf = Buffer.from(b64, 'base64')
+    return parse(buf)
+}
+
 function parse(buffer) {
     const tlvs = asn1.tokenize(buffer, 0)
     // expect(tlvs.length).toBe(1)
@@ -524,4 +544,6 @@ function parse(buffer) {
 exports.parseVersion = parseVersion
 exports.parseExtension_AuthorityKeyIdentifier = parseExtension_AuthorityKeyIdentifier
 exports.parseExtension_BasicConstraints = parseExtension_BasicConstraints
+exports.parseExtension_CertificatePolicies = parseExtension_CertificatePolicies
+exports.parsePem = parsePem
 exports.parse = parse

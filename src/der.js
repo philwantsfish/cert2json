@@ -264,7 +264,7 @@ function getParsingFunction(tagString) {
 
 // Given a TLV, parse the value
 function parse(tlv) {
-    console.log(`[+] tlv`, tlv)
+    // console.log(`[+] tlv`, tlv)
     const tagStr = Constants.tag_to_type(tlv.tag)
     const tagType = Constants.getTagType(tlv.tag)
     switch (tagType) {

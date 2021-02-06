@@ -8,6 +8,11 @@ function print_help() {
     console.log(help)
 }
 
+function print_version() {
+    var pjson = require('../package.json');
+    console.log(`Version ${pjson.version}`);
+}
+
 function isPem(data) {
     return data.includes("BEGIN CERTIFICATE")
 }
@@ -16,6 +21,11 @@ const arguments = process.argv.slice(2)
 
 if (arguments.length !== 1 || arguments.includes('-h') || arguments.includes('--help')) {
     print_help()
+    return
+}
+
+if (arguments.includes('-v') || arguments.includes('--version')) {
+    print_version()
     return
 }
 

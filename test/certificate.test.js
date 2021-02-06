@@ -8,6 +8,9 @@ const googleCertificateData = fs.readFileSync(GoogleCertificatePath)
 const PinterestInterCertificatePath = `${path.resolve('./test-data/pinterest-interm.pem')}`
 const pinterestInterCertificateData = fs.readFileSync(PinterestInterCertificatePath)
 
+const PinterestCertificatePath = `${path.resolve('./test-data/pinterest.pem')}`
+const pinterestCertificateData = fs.readFileSync(PinterestCertificatePath)
+
 test('parseVersion', () => {
     const bytes = Buffer.from([ 0x02, 0x01, 0x02 ])
     const tlv = {
@@ -115,9 +118,65 @@ test('parseExtension_BasicConstraints with cA', () => {
     expect(extension.pathLenConstraint).toBe(0)
 })
 
-test('parse a certificate', () => {
+test('parseExtension_CertificatePolicies', () => {
+    const bytes = Buffer.from([ 0x30, 0x43, 0x30, 0x37, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x86, 0xfd, 0x6c, 0x01, 0x01,
+                    0x30, 0x2a, 0x30, 0x28, 0x06, 0x08, 0x2b, 0x06, 0x01, 0x05, 0x05, 0x07, 0x02, 0x01, 0x16, 0x1c, 0x68,
+                    0x74, 0x74, 0x70, 0x73, 0x3a, 0x2f, 0x2f, 0x77, 0x77, 0x77, 0x2e, 0x64, 0x69, 0x67, 0x69, 0x63, 0x65,
+                    0x72, 0x74, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x43, 0x50, 0x53, 0x30, 0x08, 0x06, 0x06, 0x67, 0x81, 0x0c,
+                    0x01, 0x02, 0x02 ])
+    const tlv = {
+        tag: 4,
+        tagStr: 'OCTETSTRING',
+        len: 8,
+        value: bytes,
+        lenOfTlv: 10,
+        lenOfLen: 1,
+        offset: 8
+    }
+
+    const startExtensionObj = {
+        "extnID": "X509v3 Certificate Policies",
+        "critical": true,
+    }
+    const extension = certificate.parseExtension_CertificatePolicies(startExtensionObj, tlv)
+
+
+    expected = {
+        "extnID": "X509v3 Certificate Policies",
+        "critical": true
+    }
+
+    expect(extension.policies.length).toBe(2)
+    const policy1 = extension.policies[0]
+    expect(policy1.oid).toBe('2.16.840.1.114348.1.1')
+    expect(policy1.qualifiers.length).toBe(1)
+    expect(policy1.qualifiers[0].oid).toBe('1.3.6.1.5.5.7.2.1')
+    expect(policy1.qualifiers[0].str).toBe('https://www.digicert.com/CPS')
+
+    const policy2 = extension.policies[1]
+    expect(policy2.oid).toBe('2.23.140.1.2.2')
+})
+
+test('Parse a certificate without errors', () => {
+    const certificates = [
+        [googleCertificateData, certificate.parse], 
+        [pinterestCertificateData, certificate.parsePem],
+        [pinterestInterCertificateData, certificate.parsePem]
+    ]
+
+    certificates.forEach(testcase => {
+        const [cert, parsingFunc] = testcase
+        const certificateJson = parsingFunc(cert)
+
+        const certificateString = JSON.stringify(certificateJson)
+        expect(certificateString).not.toMatch(/parsedResult/)
+    })
+})
+
+test('Debugging test that prints a certificate', () => {
     // const cert = certificate.parse(googleCertificateData)
-    const cert = certificate.parse(pinterestInterCertificateData)
-    console.log(JSON.stringify(cert, null, 2))
+    // const cert = certificate.parsePem(pinterestInterCertificateData)
+    // const cert = certificate.parse(pinterestCertificateData)
+    // console.log(JSON.stringify(cert, null, 2))
 })
 
