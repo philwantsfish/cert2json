@@ -107,10 +107,19 @@ Import the library
 const cert2json = require('cert2json');
 ```
 
+Read the certificate file
+
+```javascript
+const path = require('path');
+const GoogleCertificatePath = `${path.resolve('./google.com.cer')}`
+const fs = require('fs');
+const GoogleCertificateData = fs.readFileSync(GoogleCertificatePath)
+```
+
 Parse the certificate, resulting in the same JSON object as above
 
 ```javascript
-const cert = cert2json.parse(googleCertificateData)
+const cert = cert2json.parse(GoogleCertificateData)
 ```
 
 Print the certificate to stdout
