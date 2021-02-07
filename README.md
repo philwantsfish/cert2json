@@ -39,15 +39,15 @@
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
-        <li><a href="#install_cli">Install CLI</a></li>
-        <li><a href="#install_api">Install API</a></li>
+        <li><a href="#install-cli">Install CLI</a></li>
+        <li><a href="#install-api">Install API</a></li>
       </ul>
     </li>
     <li>
         <a href="#usage">Usage</a>
         <ul>
-            <li><a href="#cli_example">CLI Example</a></li>
-            <li><a href="#api_examples">API Examples</a></li>
+            <li><a href="#cli-example">CLI Example</a></li>
+            <li><a href="#api-examples">API Examples</a></li>
         </ul>
     </li>
     <li><a href="#contributing">Contributing</a></li>
@@ -109,10 +109,16 @@ Import cert2json and call parseFromFile. The certificate can be DER or PEM forma
 const cert2json = require('cert2json')
 
 // Parse the certificate, resulting in a JSON object
-const cert = cert2json.parseFromFile('./certificates/example.com.cer')
+const cert = cert2json.parseFromFile('./certificates/google.com.cer')
 
-// Print the object
-console.log(JSON.stringify(cert, null, 2))
+// Print the issuer
+console.log(cert.tbs.issuer.full)
+```
+
+Results in:
+
+```
+C=US, O=Google Trust Services, CN=GTS CA 1O1
 ```
 
 Alternatively you can parse the certificate from memory. The parse function expects a [Buffer](https://nodejs.org/api/buffer.html) containing the certificate data.
@@ -129,7 +135,7 @@ const certificateBuffer = fs.readFileSync(certificatePath)
 // Parse the buffer contents
 const cert = cert2json.parse(certificateBuffer)
 
-// Print the object
+// Print the certificate
 console.log(JSON.stringify(cert, null, 2))
 ```
 
