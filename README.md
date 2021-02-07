@@ -39,15 +39,15 @@
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
-        <li><a href="#installation">Install CLI</a></li>
-        <li><a href="#installation">Install API</a></li>
+        <li><a href="#install_cli">Install CLI</a></li>
+        <li><a href="#install_api">Install API</a></li>
       </ul>
     </li>
     <li>
         <a href="#usage">Usage</a>
         <ul>
-            <li><a href="#installation">CLI Example</a></li>
-            <li><a href="#installation">API Examples</a></li>
+            <li><a href="#cli_example">CLI Example</a></li>
+            <li><a href="#api_examples">API Examples</a></li>
         </ul>
     </li>
     <li><a href="#contributing">Contributing</a></li>
@@ -115,7 +115,7 @@ const cert = cert2json.parseFromFile('./certificates/example.com.cer')
 console.log(JSON.stringify(cert, null, 2))
 ```
 
-Or the same example, but parsing a certificate from memory. The parse function expects a [Buffer](https://nodejs.org/api/buffer.html) containing the certificate data.
+Alternatively you can parse the certificate from memory. The parse function expects a [Buffer](https://nodejs.org/api/buffer.html) containing the certificate data.
 
 ```javascript
 // Import the library
@@ -123,7 +123,7 @@ const cert2json = require('cert2json')
 const fs = require('fs')
 
 // Read the certificate into a buffer
-const certificatePath = '/Users/okeefephil/git/cert2json/test-data/google.com.cer'
+const certificatePath = './certificates/example.com.cer'
 const certificateBuffer = fs.readFileSync(certificatePath)
 
 // Parse the buffer contents
