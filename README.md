@@ -101,7 +101,7 @@ usage: cert2json file
 
 ## Usage API
 
-Import the library the library and call parse. The parse function expects a Buffer with the certificate data in either der or pem format.
+Import cert2json and call parseFromFile. The certificate can be DER or PEM format. 
 
 ```javascript
 // Import the library
@@ -114,7 +114,7 @@ const cert = cert2json.parseFromFile('./certificates/example.com.cer')
 console.log(JSON.stringify(cert, null, 2))
 ```
 
-Or the same example parsing a certificate from a Buffer
+Or the same example, but parsing a certificate from memory. The parse function expects a [Buffer](https://nodejs.org/api/buffer.html) containing the certificate data.
 
 ```javascript
 // Import the library
