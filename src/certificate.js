@@ -469,7 +469,25 @@ function parsePem(pem) {
     return parse(buf)
 }
 
+function parseFromFile(certificatePath) {
+    const fs = require('fs')
+    const certificateBuffer = fs.readFileSync(certificatePath)
+    return parse(certificateBuffer)
+}
+
+function isPem(data) {
+    return data.includes("BEGIN CERTIFICATE")
+}
+
 function parse(buffer) {
+    if (isPem(buffer)) {
+        return parsePem(buffer)
+    } else {
+        return parseDer(buffer)
+    }
+}
+
+function parseDer(buffer) {
     const tlvs = asn1.tokenize(buffer, 0)
     // expect(tlvs.length).toBe(1)
 
@@ -546,4 +564,6 @@ exports.parseExtension_AuthorityKeyIdentifier = parseExtension_AuthorityKeyIdent
 exports.parseExtension_BasicConstraints = parseExtension_BasicConstraints
 exports.parseExtension_CertificatePolicies = parseExtension_CertificatePolicies
 exports.parsePem = parsePem
+exports.parseDer = parseDer
 exports.parse = parse
+exports.parseFromFile = parseFromFile

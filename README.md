@@ -101,33 +101,36 @@ usage: cert2json file
 
 ## Usage API
 
-Import the library
+Import the library the library and call parse. The parse function expects a Buffer with the certificate data in either der or pem format.
 
 ```javascript
-const cert2json = require('cert2json');
-```
+// Import the library
+const cert2json = require('cert2json')
 
-Read the certificate file
+// Parse the certificate, resulting in a JSON object
+const cert = cert2json.parseFromFile('./certificates/example.com.cer')
 
-```javascript
-const path = require('path');
-const GoogleCertificatePath = `${path.resolve('./google.com.cer')}`
-const fs = require('fs');
-const GoogleCertificateData = fs.readFileSync(GoogleCertificatePath)
-```
-
-Parse the certificate, resulting in the same JSON object as above
-
-```javascript
-const cert = cert2json.parse(GoogleCertificateData)
-```
-
-Print the certificate to stdout
-
-```javascript
+// Print the object
 console.log(JSON.stringify(cert, null, 2))
 ```
 
+Or the same example parsing a certificate from a Buffer
+
+```javascript
+// Import the library
+const cert2json = require('cert2json')
+const fs = require('fs')
+
+// Read the certificate into a buffer
+const certificatePath = '/Users/okeefephil/git/cert2json/test-data/google.com.cer'
+const certificateBuffer = fs.readFileSync(certificatePath)
+
+// Parse the buffer contents
+const cert = cert2json.parse(certificateBuffer)
+
+// Print the object
+console.log(JSON.stringify(cert, null, 2))
+```
 
 <!-- CONTRIBUTING -->
 ## Contributing

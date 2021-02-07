@@ -159,14 +159,28 @@ test('parseExtension_CertificatePolicies', () => {
 
 test('Parse a certificate without errors', () => {
     const certificates = [
-        [googleCertificateData, certificate.parse], 
-        [pinterestCertificateData, certificate.parsePem],
-        [pinterestInterCertificateData, certificate.parsePem]
+        googleCertificateData,
+        pinterestCertificateData,
+        pinterestInterCertificateData
     ]
 
-    certificates.forEach(testcase => {
-        const [cert, parsingFunc] = testcase
-        const certificateJson = parsingFunc(cert)
+    certificates.forEach(cert => {
+        const certificateJson = certificate.parse(cert)
+
+        const certificateString = JSON.stringify(certificateJson)
+        expect(certificateString).not.toMatch(/parsedResult/)
+    })
+})
+
+test('Parse a certificate from files without errors', () => {
+    const paths = [
+        GoogleCertificatePath,
+        PinterestInterCertificatePath,
+        PinterestCertificatePath
+    ]
+
+    paths.forEach(path => {
+        const certificateJson = certificate.parseFromFile(path)
 
         const certificateString = JSON.stringify(certificateJson)
         expect(certificateString).not.toMatch(/parsedResult/)
