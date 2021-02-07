@@ -39,15 +39,15 @@
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
-        <li><a href="#installation">CLI Installation</a></li>
-        <li><a href="#installation">API Installation</a></li>
+        <li><a href="#installation">Install CLI</a></li>
+        <li><a href="#installation">Install API</a></li>
       </ul>
     </li>
     <li>
         <a href="#usage">Usage</a>
         <ul>
             <li><a href="#installation">CLI Example</a></li>
-            <li><a href="#installation">API Example</a></li>
+            <li><a href="#installation">API Examples</a></li>
         </ul>
     </li>
     <li><a href="#contributing">Contributing</a></li>
@@ -85,9 +85,10 @@ In your npm package install the dependency
 npm install cert2json
 ```
 
+## Usage
 
 <!-- USAGE EXAMPLES -->
-## Usage CLI
+### CLI Example
 
 The CLI will print the JSON. You can use [jq](https://github.com/stedolan/jq) to process the output. Below is an example printing the certificate issuer.
 
@@ -99,7 +100,7 @@ usage: cert2json file
 ➜  
 ```
 
-## Usage API
+### API Examples
 
 Import cert2json and call parseFromFile. The certificate can be DER or PEM format. 
 
