@@ -11,6 +11,9 @@ const pinterestInterCertificateData = fs.readFileSync(PinterestInterCertificateP
 const PinterestCertificatePath = `${path.resolve('./test-data/pinterest.pem')}`
 const pinterestCertificateData = fs.readFileSync(PinterestCertificatePath)
 
+const TestIpPath = `${path.resolve('./test-data/test-ip.pem')}`
+const TestIpData = fs.readFileSync(TestIpPath)
+
 test('parseVersion', () => {
     const bytes = Buffer.from([ 0x02, 0x01, 0x02 ])
     const tlv = {
@@ -161,7 +164,8 @@ test('Parse a certificate without errors', () => {
     const certificates = [
         googleCertificateData,
         pinterestCertificateData,
-        pinterestInterCertificateData
+        pinterestInterCertificateData,
+        TestIpData
     ]
 
     certificates.forEach(cert => {
@@ -176,7 +180,8 @@ test('Parse a certificate from files without errors', () => {
     const paths = [
         GoogleCertificatePath,
         PinterestInterCertificatePath,
-        PinterestCertificatePath
+        PinterestCertificatePath,
+        TestIpPath
     ]
 
     paths.forEach(path => {

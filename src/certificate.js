@@ -228,6 +228,8 @@ function parseExtension_SubjectAlternativeName(extensionObj, token) {
             case "cont [ 1 ]":
             case "cont [ 2 ]":
                 return nameToken.value.toString()
+            case "cont [ 7 ]":
+                return nameToken.value.toJSON().data.join('.')
             default:
                 throw new Error(`Error: error parsing extension Subject Alternative Name. No support for ${nameToken.tagStr}`)
         }
