@@ -48,14 +48,14 @@ function parseIA5String(value) {
 function shiftToLeadingBits(byte, num) {
     var byteCopy = byte
     var newByte = 0x00
-    for (i = 0; i < num; i++) {
+    for (var i = 0; i < num; i++) {
         newByte = newByte >> 1
         // If the LSB bit is 1, set the leading bit
         if ((byteCopy & 0x01) === 0x01) {
             newByte = newByte | 0x80
         }
 
-        // Shfit the byte to analyze the next
+        // Shift the byte to analyze the next
         byteCopy = byteCopy >> 1
     }
     return newByte
