@@ -1,6 +1,6 @@
 {
   "name": "cert2json",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Convert x509 certificate to json",
   "main": "src/certificate.js",
   "scripts": {
