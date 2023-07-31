@@ -209,7 +209,7 @@ function parseUtcTime(bytes) {
 
 
     // Create a date object and set the values for GMT/UTC
-    const d = new Date()
+    const d = new Date(0)
     d.setUTCFullYear(year)
     d.setUTCMonth(month - 1) // Javascript quirk, month is the only one that is zero indexed
     d.setUTCDate(day)

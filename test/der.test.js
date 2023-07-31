@@ -139,3 +139,34 @@ test('A Sequence with context specific tags', () => {
     expect(cont0.length).toBe(1)
     expect(cont0[0].tagStr).toBe('cont [ 0 ]')
 })
+
+test("Parsing UTC Time for 30-days month from 31-days one", () => {
+  // given
+  jest.useFakeTimers().setSystemTime(new Date("2023-07-31T12:00:00Z"));
+  const rawBytes = [50, 51, 48, 52, 49, 56, 49, 51, 48, 57, 50, 55, 90];
+  const bytes = Buffer.from(rawBytes);
+
+  // when
+  const parsedUtcTime = DER.parseUtcTime(bytes);
+
+  // then
+  expect(parsedUtcTime).toEqual(new Date("2023-04-18T13:09:27.000Z"));
+
+  jest.useRealTimers();
+});
+
+test("Parsing UTC Time for 31-days month from 30-days one", () => {
+  // given
+  jest.useFakeTimers().setSystemTime(new Date("2023-04-30T12:00:00Z"));
+
+  const rawBytes = [50, 51, 48, 53, 51, 49, 49, 51, 48, 57, 50, 55, 90];
+  const bytes = Buffer.from(rawBytes);
+
+  // when
+  const parsedUtcTime = DER.parseUtcTime(bytes);
+
+  // then
+  expect(parsedUtcTime).toEqual(new Date("2023-05-31T13:09:27.000Z"));
+
+  jest.useRealTimers();
+});
